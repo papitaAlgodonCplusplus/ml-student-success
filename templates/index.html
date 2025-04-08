@@ -1,0 +1,428 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Success Prediction System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .prediction-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .prediction-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-bar {
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .recommendation-item {
+            border-left: 4px solid;
+            padding-left: 15px;
+            margin-bottom: 10px;
+        }
+        .high-impact {
+            border-color: #dc3545;
+        }
+        .medium-impact {
+            border-color: #fd7e14;
+        }
+        .low-impact {
+            border-color: #20c997;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="text-center mb-5">Student Success Prediction System</h1>
+        
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">Student Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="predictionForm">
+                            <div class="mb-3">
+                                <label for="previous_gpa" class="form-label">Previous GPA (0-4.0)</label>
+                                <input type="number" class="form-control" id="previous_gpa" step="0.1" min="0" max="4.0" required>
+                                <div class="form-text">Your cumulative GPA from previous semesters</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="assignment_completion" class="form-label">Assignment Completion Rate (%)</label>
+                                <input type="number" class="form-control" id="assignment_completion" min="0" max="100" required>
+                                <div class="form-text">Percentage of assignments completed on time</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="study_hours_weekly" class="form-label">Study Hours Weekly</label>
+                                <input type="number" class="form-control" id="study_hours_weekly" min="0" max="50" required>
+                                <div class="form-text">Average hours spent studying programming per week</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="submission_timeliness" class="form-label">Submission Timeliness (%)</label>
+                                <input type="number" class="form-control" id="submission_timeliness" min="0" max="100" required>
+                                <div class="form-text">Percentage of work submitted before the deadline</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="debugging_time" class="form-label">Average Debugging Time (hours/week)</label>
+                                <input type="number" class="form-control" id="debugging_time" min="0" max="40" step="0.5" required>
+                                <div class="form-text">Hours spent debugging code per week</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="forum_participation" class="form-label">Forum Participation Score</label>
+                                <input type="number" class="form-control" id="forum_participation" min="0" max="100" required>
+                                <div class="form-text">Activity level in course forums (0-100)</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="office_hours_attendance" class="form-label">Office Hours Sessions Attended</label>
+                                <input type="number" class="form-control" id="office_hours_attendance" min="0" max="20" required>
+                                <div class="form-text">Number of office hours sessions attended this term</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">Predict Success Probability</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div id="resultSection" class="d-none">
+                    <div class="card prediction-card mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title mb-0">Prediction Result</h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="display-4 mb-3" id="riskLevel">-</div>
+                            <div class="progress mb-4" style="height: 25px;">
+                                <div id="successProbability" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                            </div>
+                            <p class="lead">Probability of Success: <span id="probabilityText">0%</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title mb-0">Key Factors</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="factorsContainer"></div>
+                            <canvas id="factorsChart" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title mb-0">Personalized Recommendations</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="recommendationsContainer">
+                                <!-- Recommendations will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const data = {
+                previous_gpa: parseFloat(document.getElementById('previous_gpa').value),
+                assignment_completion: parseFloat(document.getElementById('assignment_completion').value),
+                study_hours_weekly: parseFloat(document.getElementById('study_hours_weekly').value),
+                submission_timeliness: parseFloat(document.getElementById('submission_timeliness').value),
+                debugging_time: parseFloat(document.getElementById('debugging_time').value),
+                forum_participation: parseFloat(document.getElementById('forum_participation').value),
+                office_hours_attendance: parseFloat(document.getElementById('office_hours_attendance').value)
+            };
+            
+            try {
+                // In a real application, this would be your API endpoint
+                // For demo purposes, we'll use a simulated response
+                //const response = await fetch('https://your-api-endpoint.com/predict', {
+                //    method: 'POST',
+                //    headers: {
+                //        'Content-Type': 'application/json',
+                //    },
+                //    body: JSON.stringify(data)
+                //});
+                //const result = await response.json();
+                
+                // Simulated response for demonstration
+                const result = simulatePrediction(data);
+                
+                // Show results section
+                document.getElementById('resultSection').classList.remove('d-none');
+                
+                // Update the UI with prediction results
+                updateResults(result);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while making the prediction. Please try again.');
+            }
+        });
+        
+        function simulatePrediction(data) {
+            // This is a simplified simulation - in reality your ML model would do this
+            let successProb = 0;
+            
+            // Weight factors based on importance
+            successProb += (data.previous_gpa / 4.0) * 0.23;
+            successProb += (data.assignment_completion / 100) * 0.21;
+            successProb += (Math.min(data.study_hours_weekly, 20) / 20) * 0.18;
+            successProb += (data.submission_timeliness / 100) * 0.15;
+            successProb += (1 - Math.min(data.debugging_time, 20) / 20) * 0.12; // Less debugging time is better
+            successProb += (data.forum_participation / 100) * 0.07;
+            successProb += (Math.min(data.office_hours_attendance, 10) / 10) * 0.04;
+            
+            // Add some randomness to simulate model uncertainty
+            successProb = Math.min(Math.max(successProb + (Math.random() * 0.1 - 0.05), 0), 1);
+            
+            // Generate risk level
+            let riskLevel;
+            if (successProb >= 0.8) {
+                riskLevel = "Low Risk";
+            } else if (successProb >= 0.6) {
+                riskLevel = "Moderate Risk";
+            } else if (successProb >= 0.4) {
+                riskLevel = "Elevated Risk";
+            } else {
+                riskLevel = "High Risk";
+            }
+            
+            // Generate recommendations
+            const recommendations = [];
+            
+            if (data.assignment_completion < 90) {
+                recommendations.push({
+                    area: "Assignment Completion",
+                    suggestion: "Try to complete all assignments, even with partial solutions",
+                    impact: "high"
+                });
+            }
+            
+            if (data.study_hours_weekly < 10) {
+                recommendations.push({
+                    area: "Study Time",
+                    suggestion: "Increase study time by at least 2 hours per week",
+                    impact: "medium"
+                });
+            }
+            
+            if (data.debugging_time > 15) {
+                recommendations.push({
+                    area: "Debugging Strategy",
+                    suggestion: "Consider using rubber duck debugging and divide complex problems",
+                    impact: "medium"
+                });
+            }
+            
+            if (data.forum_participation < 50) {
+                recommendations.push({
+                    area: "Forum Engagement",
+                    suggestion: "Actively participate in discussions and ask questions",
+                    impact: "low"
+                });
+            }
+            
+            if (data.submission_timeliness < 80) {
+                recommendations.push({
+                    area: "Time Management",
+                    suggestion: "Start assignments earlier to allow buffer time",
+                    impact: "high"
+                });
+            }
+            
+            // Generate feature impact
+            const explanation = {
+                previous_gpa: {
+                    value: data.previous_gpa,
+                    importance: 0.23,
+                    impact: (data.previous_gpa / 4.0) * 0.23
+                },
+                assignment_completion: {
+                    value: data.assignment_completion,
+                    importance: 0.21,
+                    impact: (data.assignment_completion / 100) * 0.21
+                },
+                study_hours_weekly: {
+                    value: data.study_hours_weekly,
+                    importance: 0.18,
+                    impact: (Math.min(data.study_hours_weekly, 20) / 20) * 0.18
+                },
+                submission_timeliness: {
+                    value: data.submission_timeliness,
+                    importance: 0.15,
+                    impact: (data.submission_timeliness / 100) * 0.15
+                },
+                debugging_time: {
+                    value: data.debugging_time,
+                    importance: 0.12,
+                    impact: (1 - Math.min(data.debugging_time, 20) / 20) * 0.12
+                },
+                forum_participation: {
+                    value: data.forum_participation,
+                    importance: 0.07,
+                    impact: (data.forum_participation / 100) * 0.07
+                },
+                office_hours_attendance: {
+                    value: data.office_hours_attendance,
+                    importance: 0.04,
+                    impact: (Math.min(data.office_hours_attendance, 10) / 10) * 0.04
+                }
+            };
+            
+            return {
+                prediction: successProb > 0.5 ? 1 : 0,
+                success_probability: successProb,
+                risk_level: riskLevel,
+                recommendations: recommendations,
+                explanation: explanation
+            };
+        }
+        
+        function updateResults(result) {
+            // Update probability display
+            const probability = Math.round(result.success_probability * 100);
+            document.getElementById('successProbability').style.width = `${probability}%`;
+            document.getElementById('successProbability').textContent = `${probability}%`;
+            document.getElementById('probabilityText').textContent = `${probability}%`;
+            
+            // Update risk level
+            const riskLevelElement = document.getElementById('riskLevel');
+            riskLevelElement.textContent = result.risk_level;
+            
+            // Set color based on risk level
+            if (result.risk_level === "Low Risk") {
+                document.getElementById('successProbability').className = "progress-bar bg-success";
+                riskLevelElement.className = "display-4 mb-3 text-success";
+            } else if (result.risk_level === "Moderate Risk") {
+                document.getElementById('successProbability').className = "progress-bar bg-info";
+                riskLevelElement.className = "display-4 mb-3 text-info";
+            } else if (result.risk_level === "Elevated Risk") {
+                document.getElementById('successProbability').className = "progress-bar bg-warning";
+                riskLevelElement.className = "display-4 mb-3 text-warning";
+            } else {
+                document.getElementById('successProbability').className = "progress-bar bg-danger";
+                riskLevelElement.className = "display-4 mb-3 text-danger";
+            }
+            
+            // Update recommendations
+            const recommendationsContainer = document.getElementById('recommendationsContainer');
+            recommendationsContainer.innerHTML = '';
+            
+            if (result.recommendations.length === 0) {
+                recommendationsContainer.innerHTML = '<p>No specific recommendations at this time. Keep up the good work!</p>';
+            } else {
+                result.recommendations.forEach(rec => {
+                    const recElement = document.createElement('div');
+                    recElement.className = `recommendation-item ${rec.impact}-impact`;
+                    recElement.innerHTML = `
+                        <h5>${rec.area}</h5>
+                        <p>${rec.suggestion}</p>
+                    `;
+                    recommendationsContainer.appendChild(recElement);
+                });
+            }
+            
+            // Update factors visualization
+            updateFactorsChart(result.explanation);
+        }
+        
+        function updateFactorsChart(explanation) {
+            // Extract data for chart
+            const labels = [];
+            const impacts = [];
+            const importances = [];
+            const values = [];
+            const displayNames = {
+                'previous_gpa': 'Previous GPA',
+                'assignment_completion': 'Assignment Completion',
+                'study_hours_weekly': 'Study Hours',
+                'submission_timeliness': 'Timeliness',
+                'debugging_time': 'Debugging Time',
+                'forum_participation': 'Forum Activity',
+                'office_hours_attendance': 'Office Hours'
+            };
+            
+            // Sort factors by importance
+            const sortedFactors = Object.keys(explanation).sort((a, b) => 
+                explanation[b].importance - explanation[a].importance
+            );
+            
+            sortedFactors.forEach(factor => {
+                labels.push(displayNames[factor] || factor);
+                impacts.push(explanation[factor].impact);
+                importances.push(explanation[factor].importance);
+                values.push(explanation[factor].value);
+            });
+            
+            // Create chart
+            const ctx = document.getElementById('factorsChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (window.factorsChart) {
+                window.factorsChart.destroy();
+            }
+            
+            window.factorsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Factor Impact',
+                        data: impacts.map(i => i * 100), // Convert to percentage
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 25,
+                            title: {
+                                display: true,
+                                text: 'Impact on Success Probability (%)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    const factor = sortedFactors[index];
+                                    return [
+                                        `Impact: ${(impacts[index] * 100).toFixed(1)}%`,
+                                        `Value: ${values[index]}`,
+                                        `Importance: ${(importances[index] * 100).toFixed(1)}%`
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
