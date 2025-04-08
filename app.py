@@ -15,9 +15,12 @@ os.makedirs('static/css', exist_ok=True)
 
 # Try to load the model if it exists
 model = None
+scaler = None
 try:
     with open("model/student_success_model.pkl", "rb") as f:
         model = pickle.load(f)
+    with open("model/scaler.pkl", "rb") as f:
+        scaler = pickle.load(f)
     print("Model loaded successfully!")
 except FileNotFoundError:
     print("Model file not found. The prediction will use a simulated model.")
@@ -45,46 +48,53 @@ def serve_static(path):
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    # Get data from request
-    data = request.json
-    
-    if model is not None:
-        # Create dataframe from input
-        input_df = pd.DataFrame([data])
+    try:
+        # Get data from request
+        data = request.json
         
-        # Make prediction using the loaded model
-        prediction = model.predict(input_df)[0]
-        prediction_probability = model.predict_proba(input_df)[0]
-    else:
-        # Simulate prediction (for demo purposes when no model is available)
-        prediction_probability = simulate_prediction(data)
-        prediction = 1 if prediction_probability > 0.5 else 0
-    
-    # Generate personalized recommendations based on input
-    recommendations = generate_recommendations(data, prediction)
-    
-    # Prepare feature importance for this prediction
-    explanation = {}
-    for feature, importance in feature_importance.items():
-        if feature in data:
-            explanation[feature] = {
-                "value": data[feature],
-                "importance": importance,
-                "impact": calculate_feature_impact(feature, data[feature], importance)
-            }
-    
-    # Get risk level based on probability
-    risk_level = get_risk_level(prediction_probability[1] if isinstance(prediction_probability, np.ndarray) else prediction_probability)
-    
-    response = {
-        "prediction": float(prediction),
-        "success_probability": float(prediction_probability[1] if isinstance(prediction_probability, np.ndarray) else prediction_probability),
-        "risk_level": risk_level,
-        "recommendations": recommendations,
-        "explanation": explanation
-    }
-    
-    return jsonify(response)
+        if model is not None and scaler is not None:
+            # Create dataframe from input
+            input_df = pd.DataFrame([data])
+            
+            # Scale features
+            input_scaled = scaler.transform(input_df)
+            
+            # Make prediction using the loaded model
+            prediction = model.predict(input_scaled)[0]
+            prediction_probability = model.predict_proba(input_scaled)[0][1]  # Get probability of positive class
+        else:
+            # Simulate prediction (for demo purposes when no model is available)
+            prediction_probability = simulate_prediction(data)
+            prediction = 1 if prediction_probability > 0.5 else 0
+        
+        # Generate personalized recommendations based on input
+        recommendations = generate_recommendations(data, prediction)
+        
+        # Prepare feature importance for this prediction
+        explanation = {}
+        for feature, importance in feature_importance.items():
+            if feature in data:
+                explanation[feature] = {
+                    "value": data[feature],
+                    "importance": importance,
+                    "impact": calculate_feature_impact(feature, data[feature], importance)
+                }
+        
+        # Get risk level based on probability
+        risk_level = get_risk_level(prediction_probability)
+        
+        response = {
+            "prediction": int(prediction),
+            "success_probability": float(prediction_probability),
+            "risk_level": risk_level,
+            "recommendations": recommendations,
+            "explanation": explanation
+        }
+        
+        return jsonify(response)
+    except Exception as e:
+        print(f"Error in prediction: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 def simulate_prediction(data):
     """Simulate a prediction when no model is available"""
