@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 import pandas as pd
-import pickle
+import json
 import numpy as np
 import os
 
@@ -13,17 +13,14 @@ os.makedirs('templates', exist_ok=True)
 os.makedirs('static/js', exist_ok=True)
 os.makedirs('static/css', exist_ok=True)
 
-# Try to load the model if it exists
-model = None
-scaler = None
+# Try to load the model parameters from JSON if it exists
+model_params = None
 try:
-    with open("model/student_success_model.pkl", "rb") as f:
-        model = pickle.load(f)
-    with open("model/scaler.pkl", "rb") as f:
-        scaler = pickle.load(f)
-    print("Model loaded successfully!")
+    with open("model/model_params.json", "rb") as f:
+        model_params = json.load(f)
+    print("Model parameters loaded successfully!")
 except FileNotFoundError:
-    print("Model file not found. The prediction will use a simulated model.")
+    print("Model parameters file not found. The prediction will use a simulated model.")
 
 # Define feature importance for explanation
 feature_importance = {
@@ -35,6 +32,20 @@ feature_importance = {
     "forum_participation": 0.07,
     "office_hours_attendance": 0.04
 }
+
+# If model_params exists, update feature_importance with actual values
+if model_params and 'feature_importances' in model_params:
+    feature_names = [
+        "previous_gpa", "assignment_completion", "study_hours_weekly",
+        "submission_timeliness", "debugging_time", "forum_participation",
+        "office_hours_attendance"
+    ]
+    
+    # Update feature importance with values from the model
+    importances = model_params['feature_importances']
+    if len(importances) == len(feature_names):
+        for i, feature in enumerate(feature_names):
+            feature_importance[feature] = importances[i]
 
 @app.route('/')
 def index():
@@ -52,20 +63,9 @@ def predict():
         # Get data from request
         data = request.json
         
-        if model is not None and scaler is not None:
-            # Create dataframe from input
-            input_df = pd.DataFrame([data])
-            
-            # Scale features
-            input_scaled = scaler.transform(input_df)
-            
-            # Make prediction using the loaded model
-            prediction = model.predict(input_scaled)[0]
-            prediction_probability = model.predict_proba(input_scaled)[0][1]  # Get probability of positive class
-        else:
-            # Simulate prediction (for demo purposes when no model is available)
-            prediction_probability = simulate_prediction(data)
-            prediction = 1 if prediction_probability > 0.5 else 0
+        # Always use simulation with updated feature importance
+        prediction_probability = predict(data)
+        prediction = 1 if prediction_probability > 0.5 else 0
         
         # Generate personalized recommendations based on input
         recommendations = generate_recommendations(data, prediction)
@@ -96,19 +96,26 @@ def predict():
         print(f"Error in prediction: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-def simulate_prediction(data):
-    """Simulate a prediction when no model is available"""
-    # This is a simplified simulation - in reality your ML model would do this
+def predict(data):
     success_prob = 0
     
-    # Weight factors based on importance
-    success_prob += (data.get("previous_gpa", 0) / 4.0) * 0.23
-    success_prob += (data.get("assignment_completion", 0) / 100) * 0.21
-    success_prob += (min(data.get("study_hours_weekly", 0), 20) / 20) * 0.18
-    success_prob += (data.get("submission_timeliness", 0) / 100) * 0.15
-    success_prob += (1 - min(data.get("debugging_time", 0), 20) / 20) * 0.12  # Less debugging time is better
-    success_prob += (data.get("forum_participation", 0) / 100) * 0.07
-    success_prob += (min(data.get("office_hours_attendance", 0), 10) / 10) * 0.04
+    for feature, importance in feature_importance.items():
+        if feature in data:
+            if feature == "previous_gpa":
+                normalized_value = data[feature] / 4.0
+            elif feature in ["assignment_completion", "submission_timeliness", "forum_participation"]:
+                normalized_value = data[feature] / 100
+            elif feature == "study_hours_weekly":
+                normalized_value = min(data[feature], 20) / 20
+            elif feature == "debugging_time":
+                normalized_value = 1 - min(data[feature], 20) / 20
+            elif feature == "office_hours_attendance":
+                normalized_value = min(data[feature], 10) / 10
+            else:
+                normalized_value = 0.5  # Default
+            
+            # Add weighted contribution
+            success_prob += normalized_value * importance
     
     # Add some randomness to simulate model uncertainty
     success_prob = min(max(success_prob + (np.random.random() * 0.1 - 0.05), 0), 1)
