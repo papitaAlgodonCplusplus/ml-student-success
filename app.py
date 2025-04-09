@@ -12,18 +12,22 @@ import docx2txt
 import tempfile
 import nltk
 from nltk.tokenize import word_tokenize
+os.makedirs('nltk_data/tokenizers', exist_ok=True)
+os.makedirs('nltk_data/corpora', exist_ok=True)
 
-# Download NLTK resources if not already downloaded
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+nltk.data.path.insert(0, os.path.join(os.getcwd(), 'nltk_data'))
 
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
-
+# Don't attempt downloads in production
+if 'DYNO' not in os.environ:  # Not on Heroku
+    try:
+        nltk.download('punkt')
+    except:
+        pass
+    try:
+        nltk.download('stopwords')
+    except:
+        pass
+    
 app = Flask(__name__)
 CORS(app)  # Enable cross-origin requests
 
@@ -258,8 +262,12 @@ def extract_information_from_cv(text):
     # Normalize text: convert to lowercase and remove extra whitespace
     text = ' '.join(text.lower().split())
     
-    # Tokenize text
-    tokens = word_tokenize(text)
+    # Tokenize text with fallback
+    try:
+        tokens = word_tokenize(text)
+    except LookupError:
+        # Simple fallback tokenization
+        tokens = text.split()
     
     # Define result structure
     result = {
