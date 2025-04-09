@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Success Prediction System</title>
+    <title>Engineer Job Selection Predictor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -247,13 +247,13 @@
 
 <body>
     <div class="container py-5">
-        <h1 class="text-center page-title">Student Success Prediction System</h1>
+        <h1 class="text-center page-title">Engineer Job Selection Predictor</h1>
 
         <div class="row justify-content-center">
             <div class="col-lg-6">
                 <div class="card form-card mb-4">
                     <div class="card-header">
-                        <h3 class="card-title mb-0">Student Information</h3>
+                        <h3 class="card-title mb-0">Candidate Information</h3>
                     </div>
                     <div class="card-body">
                         <!-- Progress Bar -->
@@ -268,108 +268,104 @@
 
                         <form id="predictionForm">
                             <div class="mb-4">
-                                <label for="previous_gpa" class="form-label">Previous GPA (0-4.0)</label>
-                                <input type="number" class="form-control form-field" id="previous_gpa" step="0.1"
-                                    min="0" max="4.0" required>
-                                <div class="form-text mb-2">Your cumulative GPA from previous semesters</div>
+                                <label for="years_of_experience" class="form-label">Years of Experience</label>
+                                <input type="number" class="form-control form-field" id="years_of_experience" step="0.5"
+                                    min="0" max="20" required>
+                                <div class="form-text mb-2">Total number of years in relevant engineering roles</div>
                                 <div class="quick-select-buttons">
-                                    <button type="button" class="btn btn-quick-select" data-value="2.0">2.0</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="2.5">2.5</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="3.0">3.0</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="3.5">3.5</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="4.0">4.0</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="1">1 yr</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="3">3 yrs</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="5">5 yrs</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="8">8 yrs</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="10+">10+ yrs</button>
                                 </div>
                             </div>
 
                             <div class="mb-4">
-                                <label for="assignment_completion" class="form-label">Assignment Completion Rate
-                                    (%)</label>
-                                <input type="number" class="form-control form-field" id="assignment_completion" min="0"
+                                <label for="technical_skills" class="form-label">Technical Skills</label>
+                                <input type="number" class="form-control form-field" id="technical_skills" min="0"
+                                    max="15" required>
+                                <div class="form-text mb-2">Number of programming languages, tools, or technologies mastered</div>
+                                <div class="quick-select-buttons">
+                                    <button type="button" class="btn btn-quick-select" data-value="2">2</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="4">4</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="6">6</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="8">8</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="10+">10+</button>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="certificates" class="form-label">Certificates</label>
+                                <input type="number" class="form-control form-field" id="certificates" min="0"
+                                    max="10" required>
+                                <div class="form-text mb-2">Number of relevant professional certifications</div>
+                                <div class="quick-select-buttons">
+                                    <button type="button" class="btn btn-quick-select" data-value="0">0</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="1">1</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="2">2</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="3">3</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="5+">5+</button>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="personal_projects" class="form-label">Personal Projects</label>
+                                <input type="number" class="form-control form-field" id="personal_projects" min="0"
+                                    max="20" required>
+                                <div class="form-text mb-2">Number of significant personal or open-source projects</div>
+                                <div class="quick-select-buttons">
+                                    <button type="button" class="btn btn-quick-select" data-value="0">0</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="2">2</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="4">4</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="6">6</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="8+">8+</button>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="academic_achievements" class="form-label">Academic Achievements (0-100)</label>
+                                <input type="number" class="form-control form-field" id="academic_achievements" min="0"
                                     max="100" required>
-                                <div class="form-text mb-2">Percentage of assignments completed on time</div>
+                                <div class="form-text mb-2">Overall score of academic performance and achievements</div>
                                 <div class="quick-select-buttons">
-                                    <button type="button" class="btn btn-quick-select" data-value="50">50%</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="70">70%</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="80">80%</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="90">90%</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="100">100%</button>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="study_hours_weekly" class="form-label">Study Hours Weekly</label>
-                                <input type="number" class="form-control form-field" id="study_hours_weekly" min="0"
-                                    max="50" required>
-                                <div class="form-text mb-2">Average hours spent studying programming per week</div>
-                                <div class="quick-select-buttons">
-                                    <button type="button" class="btn btn-quick-select" data-value="5">5 hrs</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="10">10 hrs</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="15">15 hrs</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="20">20 hrs</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="25">25 hrs</button>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="submission_timeliness" class="form-label">Submission Timeliness (%)</label>
-                                <input type="number" class="form-control form-field" id="submission_timeliness" min="0"
-                                    max="100" required>
-                                <div class="form-text mb-2">Percentage of work submitted before the deadline</div>
-                                <div class="quick-select-buttons">
-                                    <button type="button" class="btn btn-quick-select" data-value="50">50%</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="70">70%</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="80">80%</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="90">90%</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="100">100%</button>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="debugging_time" class="form-label">Average Debugging Time
-                                    (hours/week)</label>
-                                <input type="number" class="form-control form-field" id="debugging_time" min="0"
-                                    max="40" step="0.5" required>
-                                <div class="form-text mb-2">Hours spent debugging code per week</div>
-                                <div class="quick-select-buttons">
-                                    <button type="button" class="btn btn-quick-select" data-value="2">2 hrs</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="5">5 hrs</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="10">10 hrs</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="15">15 hrs</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="20">20 hrs</button>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="forum_participation" class="form-label">Forum Participation Score</label>
-                                <input type="number" class="form-control form-field" id="forum_participation" min="0"
-                                    max="100" required>
-                                <div class="form-text mb-2">Activity level in course forums (0-100)</div>
-                                <div class="quick-select-buttons">
-                                    <button type="button" class="btn btn-quick-select" data-value="20">20</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="40">40</button>
                                     <button type="button" class="btn btn-quick-select" data-value="60">60</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="70">70</button>
                                     <button type="button" class="btn btn-quick-select" data-value="80">80</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="90">90</button>
                                     <button type="button" class="btn btn-quick-select" data-value="100">100</button>
                                 </div>
                             </div>
 
                             <div class="mb-4">
-                                <label for="office_hours_attendance" class="form-label">Office Hours Sessions
-                                    Attended</label>
-                                <input type="number" class="form-control form-field" id="office_hours_attendance"
-                                    min="0" max="20" required>
-                                <div class="form-text mb-2">Number of office hours sessions attended this term</div>
+                                <label for="extra_academic_achievements" class="form-label">Extra-Academic Achievements</label>
+                                <input type="number" class="form-control form-field" id="extra_academic_achievements"
+                                    min="0" max="10" required>
+                                <div class="form-text mb-2">Number of notable achievements outside formal education</div>
                                 <div class="quick-select-buttons">
                                     <button type="button" class="btn btn-quick-select" data-value="0">0</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="1">1</button>
                                     <button type="button" class="btn btn-quick-select" data-value="2">2</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="5">5</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="8">8</button>
-                                    <button type="button" class="btn btn-quick-select" data-value="10">10+</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="3">3</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="5+">5+</button>
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary w-100 mt-4">Predict Success
-                                Probability</button>
+                            <div class="mb-4">
+                                <label for="networking_referees" class="form-label">Professional References</label>
+                                <input type="number" class="form-control form-field" id="networking_referees"
+                                    min="0" max="10" required>
+                                <div class="form-text mb-2">Number of strong professional references from the industry</div>
+                                <div class="quick-select-buttons">
+                                    <button type="button" class="btn btn-quick-select" data-value="0">0</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="1">1</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="2">2</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="3">3</button>
+                                    <button type="button" class="btn btn-quick-select" data-value="5+">5+</button>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 mt-4">Predict Selection Probability</button>
                         </form>
 
                         <div id="loadingIndicator" class="loading mt-3">
@@ -384,15 +380,15 @@
                 <div id="resultSection" class="d-none">
                     <div class="card prediction-card mb-4">
                         <div class="card-header">
-                            <h3 class="card-title mb-0">Prediction Result</h3>
+                            <h3 class="card-title mb-0">Selection Prediction</h3>
                         </div>
                         <div class="card-body text-center">
-                            <div class="display-4 mb-3" id="riskLevel">-</div>
+                            <div class="display-4 mb-3" id="selectionLikelihood">-</div>
                             <div class="progress mb-4" style="height: 25px;">
-                                <div id="successProbability" class="progress-bar" role="progressbar" style="width: 0%;"
+                                <div id="selectionProbability" class="progress-bar" role="progressbar" style="width: 0%;"
                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
                             </div>
-                            <p class="lead">Probability of Success: <span id="probabilityText">0%</span></p>
+                            <p class="lead">Probability of Selection: <span id="probabilityText">0%</span></p>
                         </div>
                     </div>
 
@@ -414,7 +410,7 @@
 
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title mb-0">Personalized Recommendations</h3>
+                            <h3 class="card-title mb-0">Improvement Recommendations</h3>
                         </div>
                         <div class="card-body">
                             <div id="recommendationsContainer">
@@ -513,7 +509,7 @@
                         max: 25,
                         title: {
                             display: true,
-                            text: 'Impact on Success Probability (%)'
+                            text: 'Impact on Selection Probability (%)'
                         }
                     }
                 };
@@ -579,7 +575,13 @@
                 button.addEventListener('click', function () {
                     const value = this.getAttribute('data-value');
                     const input = this.parentElement.previousElementSibling.previousElementSibling;
-                    input.value = value;
+                    
+                    // Handle the "X+" format for values
+                    if (value.endsWith('+')) {
+                        input.value = value.substring(0, value.length - 1);
+                    } else {
+                        input.value = value;
+                    }
 
                     // Update selected state
                     const siblings = this.parentElement.querySelectorAll('.btn-quick-select');
@@ -648,13 +650,13 @@
 
             // Get form values
             const data = {
-                previous_gpa: parseFloat(document.getElementById('previous_gpa').value),
-                assignment_completion: parseFloat(document.getElementById('assignment_completion').value),
-                study_hours_weekly: parseFloat(document.getElementById('study_hours_weekly').value),
-                submission_timeliness: parseFloat(document.getElementById('submission_timeliness').value),
-                debugging_time: parseFloat(document.getElementById('debugging_time').value),
-                forum_participation: parseFloat(document.getElementById('forum_participation').value),
-                office_hours_attendance: parseFloat(document.getElementById('office_hours_attendance').value)
+                years_of_experience: parseFloat(document.getElementById('years_of_experience').value),
+                technical_skills: parseFloat(document.getElementById('technical_skills').value),
+                certificates: parseFloat(document.getElementById('certificates').value),
+                personal_projects: parseFloat(document.getElementById('personal_projects').value),
+                academic_achievements: parseFloat(document.getElementById('academic_achievements').value),
+                extra_academic_achievements: parseFloat(document.getElementById('extra_academic_achievements').value),
+                networking_referees: parseFloat(document.getElementById('networking_referees').value)
             };
 
             try {
@@ -694,28 +696,28 @@
 
         function updateResults(result) {
             // Update probability display
-            const probability = Math.round(result.success_probability * 100);
-            document.getElementById('successProbability').style.width = `${probability}%`;
-            document.getElementById('successProbability').textContent = `${probability}%`;
+            const probability = Math.round(result.selection_probability * 100);
+            document.getElementById('selectionProbability').style.width = `${probability}%`;
+            document.getElementById('selectionProbability').textContent = `${probability}%`;
             document.getElementById('probabilityText').textContent = `${probability}%`;
 
-            // Update risk level
-            const riskLevelElement = document.getElementById('riskLevel');
-            riskLevelElement.textContent = result.risk_level;
+            // Update selection likelihood
+            const selectionLikelihoodElement = document.getElementById('selectionLikelihood');
+            selectionLikelihoodElement.textContent = result.selection_likelihood;
 
-            // Set color based on risk level
-            if (result.risk_level === "Low Risk") {
-                document.getElementById('successProbability').className = "progress-bar bg-success";
-                riskLevelElement.className = "display-4 mb-3 text-success";
-            } else if (result.risk_level === "Moderate Risk") {
-                document.getElementById('successProbability').className = "progress-bar bg-info";
-                riskLevelElement.className = "display-4 mb-3 text-info";
-            } else if (result.risk_level === "Elevated Risk") {
-                document.getElementById('successProbability').className = "progress-bar bg-warning";
-                riskLevelElement.className = "display-4 mb-3 text-warning";
+            // Set color based on selection likelihood
+            if (result.selection_likelihood === "Very Likely") {
+                document.getElementById('selectionProbability').className = "progress-bar bg-success";
+                selectionLikelihoodElement.className = "display-4 mb-3 text-success";
+            } else if (result.selection_likelihood === "Likely") {
+                document.getElementById('selectionProbability').className = "progress-bar bg-info";
+                selectionLikelihoodElement.className = "display-4 mb-3 text-info";
+            } else if (result.selection_likelihood === "Possible") {
+                document.getElementById('selectionProbability').className = "progress-bar bg-warning";
+                selectionLikelihoodElement.className = "display-4 mb-3 text-warning";
             } else {
-                document.getElementById('successProbability').className = "progress-bar bg-danger";
-                riskLevelElement.className = "display-4 mb-3 text-danger";
+                document.getElementById('selectionProbability').className = "progress-bar bg-danger";
+                selectionLikelihoodElement.className = "display-4 mb-3 text-danger";
             }
 
             // Update recommendations
@@ -723,7 +725,7 @@
             recommendationsContainer.innerHTML = '';
 
             if (result.recommendations.length === 0) {
-                recommendationsContainer.innerHTML = '<p>No specific recommendations at this time. Keep up the good work!</p>';
+                recommendationsContainer.innerHTML = '<p>No specific recommendations at this time. Your profile looks competitive!</p>';
             } else {
                 result.recommendations.forEach(rec => {
                     const recElement = document.createElement('div');
@@ -747,13 +749,13 @@
             const importances = [];
             const values = [];
             const displayNames = {
-                'previous_gpa': 'Previous GPA',
-                'assignment_completion': 'Assignment Completion',
-                'study_hours_weekly': 'Study Hours',
-                'submission_timeliness': 'Timeliness',
-                'debugging_time': 'Debugging Time',
-                'forum_participation': 'Forum Activity',
-                'office_hours_attendance': 'Office Hours'
+                'years_of_experience': 'Years of Experience',
+                'technical_skills': 'Technical Skills',
+                'certificates': 'Certificates',
+                'personal_projects': 'Personal Projects',
+                'academic_achievements': 'Academic Achievements',
+                'extra_academic_achievements': 'Extra-Academic Achievements',
+                'networking_referees': 'Professional References'
             };
 
             // Sort factors by importance

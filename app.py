@@ -24,21 +24,21 @@ except FileNotFoundError:
 
 # Define feature importance for explanation
 feature_importance = {
-    "previous_gpa": 0.23,
-    "assignment_completion": 0.21,
-    "study_hours_weekly": 0.18,
-    "submission_timeliness": 0.15,
-    "debugging_time": 0.12,
-    "forum_participation": 0.07,
-    "office_hours_attendance": 0.04
+    "years_of_experience": 0.25,
+    "technical_skills": 0.22,
+    "certificates": 0.15,
+    "personal_projects": 0.14,
+    "academic_achievements": 0.10,
+    "extra_academic_achievements": 0.08,
+    "networking_referees": 0.06
 }
 
 # If model_params exists, update feature_importance with actual values
 if model_params and 'feature_importances' in model_params:
     feature_names = [
-        "previous_gpa", "assignment_completion", "study_hours_weekly",
-        "submission_timeliness", "debugging_time", "forum_participation",
-        "office_hours_attendance"
+        "years_of_experience", "technical_skills", "certificates",
+        "personal_projects", "academic_achievements", "extra_academic_achievements",
+        "networking_referees"
     ]
     
     # Update feature importance with values from the model
@@ -64,7 +64,7 @@ def predict():
         data = request.json
         
         # Always use simulation with updated feature importance
-        prediction_probability = predict(data)
+        prediction_probability = predict_selection(data)
         prediction = 1 if prediction_probability > 0.5 else 0
         
         # Generate personalized recommendations based on input
@@ -80,13 +80,13 @@ def predict():
                     "impact": calculate_feature_impact(feature, data[feature], importance)
                 }
         
-        # Get risk level based on probability
-        risk_level = get_risk_level(prediction_probability)
+        # Get selection likelihood based on probability
+        selection_likelihood = get_selection_likelihood(prediction_probability)
         
         response = {
             "prediction": int(prediction),
-            "success_probability": float(prediction_probability),
-            "risk_level": risk_level,
+            "selection_probability": float(prediction_probability),
+            "selection_likelihood": selection_likelihood,
             "recommendations": recommendations,
             "explanation": explanation
         }
@@ -96,42 +96,46 @@ def predict():
         print(f"Error in prediction: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-def predict(data):
-    success_prob = 0
+def predict_selection(data):
+    selection_prob = 0
     
     for feature, importance in feature_importance.items():
         if feature in data:
-            if feature == "previous_gpa":
-                normalized_value = data[feature] / 4.0
-            elif feature in ["assignment_completion", "submission_timeliness", "forum_participation"]:
-                normalized_value = data[feature] / 100
-            elif feature == "study_hours_weekly":
-                normalized_value = min(data[feature], 20) / 20
-            elif feature == "debugging_time":
-                normalized_value = 1 - min(data[feature], 20) / 20
-            elif feature == "office_hours_attendance":
-                normalized_value = min(data[feature], 10) / 10
+            if feature == "years_of_experience":
+                normalized_value = min(data[feature], 15) / 15  # Cap at 15 years
+            elif feature == "technical_skills":
+                normalized_value = min(data[feature], 10) / 10  # Cap at 10 skills
+            elif feature == "certificates":
+                normalized_value = min(data[feature], 5) / 5  # Cap at 5 certificates
+            elif feature == "personal_projects":
+                normalized_value = min(data[feature], 8) / 8  # Cap at 8 projects
+            elif feature == "academic_achievements":
+                normalized_value = data[feature] / 100  # Percentage-based
+            elif feature == "extra_academic_achievements":
+                normalized_value = min(data[feature], 5) / 5  # Cap at 5 achievements
+            elif feature == "networking_referees":
+                normalized_value = min(data[feature], 5) / 5  # Cap at 5 referees
             else:
                 normalized_value = 0.5  # Default
             
             # Add weighted contribution
-            success_prob += normalized_value * importance
+            selection_prob += normalized_value * importance
     
     # Add some randomness to simulate model uncertainty
-    success_prob = min(max(success_prob + (np.random.random() * 0.1 - 0.05), 0), 1)
+    selection_prob = min(max(selection_prob + (np.random.random() * 0.1 - 0.05), 0), 1)
     
-    return success_prob
+    return selection_prob
 
 def calculate_feature_impact(feature, value, importance):
     # Simplified impact calculation - would be more sophisticated in real app
     feature_ranges = {
-        "previous_gpa": {"min": 0, "max": 4.0, "optimal": 3.5},
-        "assignment_completion": {"min": 0, "max": 100, "optimal": 95},
-        "study_hours_weekly": {"min": 0, "max": 30, "optimal": 15},
-        "submission_timeliness": {"min": 0, "max": 100, "optimal": 90},
-        "debugging_time": {"min": 0, "max": 20, "optimal": 7},
-        "forum_participation": {"min": 0, "max": 100, "optimal": 70},
-        "office_hours_attendance": {"min": 0, "max": 10, "optimal": 5}
+        "years_of_experience": {"min": 0, "max": 15, "optimal": 8},
+        "technical_skills": {"min": 0, "max": 10, "optimal": 7},
+        "certificates": {"min": 0, "max": 5, "optimal": 3},
+        "personal_projects": {"min": 0, "max": 8, "optimal": 5},
+        "academic_achievements": {"min": 0, "max": 100, "optimal": 85},
+        "extra_academic_achievements": {"min": 0, "max": 5, "optimal": 3},
+        "networking_referees": {"min": 0, "max": 5, "optimal": 4}
     }
     
     if feature in feature_ranges:
@@ -146,53 +150,53 @@ def calculate_feature_impact(feature, value, importance):
     
     return 0.0
 
-def get_risk_level(probability):
+def get_selection_likelihood(probability):
     if probability >= 0.8:
-        return "Low Risk"
+        return "Very Likely"
     elif probability >= 0.6:
-        return "Moderate Risk"
+        return "Likely"
     elif probability >= 0.4:
-        return "Elevated Risk"
+        return "Possible"
     else:
-        return "High Risk"
+        return "Unlikely"
 
 def generate_recommendations(data, prediction):
     recommendations = []
     
     # Example recommendation logic
-    if data.get("assignment_completion", 100) < 90:
+    if data.get("years_of_experience", 0) < 2:
         recommendations.append({
-            "area": "Assignment Completion",
-            "suggestion": "Try to complete all assignments, even with partial solutions",
+            "area": "Work Experience",
+            "suggestion": "Highlight internships or relevant project experience to compensate for limited professional experience",
             "impact": "high"
         })
     
-    if data.get("study_hours_weekly", 0) < 10:
+    if data.get("technical_skills", 0) < 5:
         recommendations.append({
-            "area": "Study Time",
-            "suggestion": "Increase study time by at least 2 hours per week",
-            "impact": "medium" 
+            "area": "Technical Skills",
+            "suggestion": "Expand your technical toolkit by learning in-demand programming languages or frameworks",
+            "impact": "high" 
         })
     
-    if data.get("debugging_time", 0) > 15:
+    if data.get("certificates", 0) < 2:
         recommendations.append({
-            "area": "Debugging Strategy",
-            "suggestion": "Consider using rubber duck debugging and divide complex problems",
+            "area": "Professional Certifications",
+            "suggestion": "Pursue relevant industry certifications to validate your expertise",
             "impact": "medium"
         })
         
-    if data.get("forum_participation", 0) < 50:
+    if data.get("personal_projects", 0) < 3:
         recommendations.append({
-            "area": "Forum Engagement",
-            "suggestion": "Actively participate in discussions and ask questions",
-            "impact": "low"
+            "area": "Portfolio Development",
+            "suggestion": "Create personal or open-source projects that showcase your problem-solving abilities",
+            "impact": "medium"
         })
     
-    if data.get("submission_timeliness", 0) < 80:
+    if data.get("networking_referees", 0) < 2:
         recommendations.append({
-            "area": "Time Management",
-            "suggestion": "Start assignments earlier to allow buffer time",
-            "impact": "high"
+            "area": "Professional Network",
+            "suggestion": "Expand your industry connections through meetups, conferences, or online communities",
+            "impact": "low"
         })
     
     return recommendations

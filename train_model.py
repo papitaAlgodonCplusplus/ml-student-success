@@ -4,20 +4,21 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import pickle
+import json
 
-def train_student_success_model(data_path):
+def train_engineer_selection_model(data_path):
     # Load dataset
     df = pd.read_csv(data_path)
     
     # Feature engineering
     features = [
-        "previous_gpa", "assignment_completion", "study_hours_weekly",
-        "submission_timeliness", "debugging_time", "forum_participation",
-        "office_hours_attendance"
+        "years_of_experience", "technical_skills", "certificates",
+        "personal_projects", "academic_achievements", "extra_academic_achievements",
+        "networking_referees"
     ]
     
     X = df[features]
-    y = df["passed_course"]  # Target variable
+    y = df["selected"]  # Target variable
     
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -56,13 +57,23 @@ def train_student_success_model(data_path):
     print(f"Model performance metrics: {metrics}")
     
     # Save model and scaler
-    with open("model/student_success_model.pkl", "wb") as f:
+    with open("model/engineer_selection_model.pkl", "wb") as f:
         pickle.dump(best_model, f)
     
     with open("model/scaler.pkl", "wb") as f:
         pickle.dump(scaler, f)
     
+    # Save feature importances to JSON for the app to use
+    feature_importances = best_model.feature_importances_.tolist()
+    model_params = {
+        "feature_importances": feature_importances,
+        "classes": best_model.classes_.tolist()
+    }
+    
+    with open("model/model_params.json", "w") as f:
+        json.dump(model_params, f)
+    
     return best_model, metrics
 
 if __name__ == "__main__":
-    train_student_success_model("data/student_performance.csv")
+    train_engineer_selection_model("data/engineer_candidates.csv")
