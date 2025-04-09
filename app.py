@@ -11,7 +11,6 @@ import PyPDF2
 import docx2txt
 import tempfile
 import nltk
-nltk.download('punkt_tab')
 from nltk.tokenize import word_tokenize
 
 # Download NLTK resources if not already downloaded
